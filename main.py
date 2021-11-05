@@ -95,3 +95,6 @@ def forward_notifications():
             for mail_msg in disc_messages[title]['messages']:
                 mail_msg.is_read = True
                 mail_msg.save()  # TODO: переделать на bulk_update
+
+
+scheduler.start()
