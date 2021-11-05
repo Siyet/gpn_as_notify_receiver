@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 from time import sleep
 
 import requests
@@ -100,6 +101,8 @@ def forward_notifications():
             for mail_msg in disc_messages[title]['messages']:
                 mail_msg.is_read = True
                 mail_msg.save()  # TODO: переделать на bulk_update
+    now = str(datetime.utcnow())[:-3].replace(' ', 'T') + 'Z'
+    logger.info(f'[{now}] the transfer was completed successfully.')
 
 
 scheduler.start()
