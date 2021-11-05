@@ -15,6 +15,11 @@ scheduler = BlockingScheduler()
 DISC_WEBHOOK_URL = os.environ['DISC_WEBHOOK_URL']
 DISC_DEV_ROLE = os.environ['DISC_DEV_ROLE']
 DISC_MSG_LIMIT = int(os.environ.get('DISC_MSG_LIMIT', '1800'))
+FREQUENCY_MIN = int(os.environ.get('FREQUENCY_MIN', '10'))
+MAIL_USER = os.environ['MAIL_USER']
+MAIL_PASS = os.environ['MAIL_PASS']
+MAIL_ADDR = os.environ['MAIL_ADDR']
+MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
 
 
 def send_msg(title: str, description: str):
@@ -30,15 +35,15 @@ def send_msg(title: str, description: str):
 @scheduler.scheduled_job('interval', minutes=10)
 def forward_notifications():
     mail_cfg = Configuration(server='mail.gazprom-neft.ru',
-                             credentials=Credentials(username=os.environ['MAIL_USER'],
-                                                     password=os.environ['MAIL_PASS']))
+                             credentials=Credentials(username=MAIL_USER,
+                                                     password=MAIL_PASS))
     mail_account = Account(
-        primary_smtp_address=os.environ['MAIL_ADDR'],
+        primary_smtp_address=MAIL_ADDR,
         autodiscover=False, access_type=DELEGATE,
         config=mail_cfg
     )
     # Просматриваем каждую из указанных папок по очереди
-    for folder_ in os.environ['MAIL_FOLDER'].split(','):
+    for folder_ in MAIL_FOLDER:
         folder = mail_account.root / 'Корневой уровень хранилища' / folder_
         mails = {}
         # Перебираем не прочитанные сообщения и объединяем сообщения с одинаковым заголовком и текстом
