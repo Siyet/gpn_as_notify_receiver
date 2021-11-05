@@ -105,4 +105,5 @@ def forward_notifications():
     logger.info(f'[{now}] the transfer was completed successfully.')
 
 
+forward_notifications()
 scheduler.start()
