@@ -93,6 +93,7 @@ def forward_notifications():
                     disc_messages[title]['descriptions'].append(description)
                 else:
                     disc_messages[title]['descriptions'][-1] += '\n' + description
+                disc_messages[title] += mail['messages']
 
         for title in disc_messages:
             for description in disc_messages[title]['descriptions']:
