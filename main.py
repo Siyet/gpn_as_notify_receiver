@@ -25,7 +25,7 @@ MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
 
 def send_msg(title: str, description: str):
     resp = requests.post(DISC_WEBHOOK_URL, json=DiscMsg(
-        embeds=[DiscMsgEmbed(title=title, description=f'{DISC_DEV_ROLE}\n{description}')]
+        embeds=[DiscMsgEmbed(title=title, description=f'{DISC_DEV_ROLE} {description}')]
     ).dict(by_alias=True))
     assert resp.status_code == 204, \
         f'Error! Received unexpected HTTP code: {resp.status_code}'
@@ -77,7 +77,7 @@ def forward_notifications():
         for mail in mails.values():
             title = mail['subject']
             datetime_received = str(mail['start']).replace('+00:00', 'Z').replace(' ', 'T')
-            end = str(mail['end']).replace('+00:00', 'Z').replace(' ', 'T')
+            end = str(mail['end']).replace('+00:00', ' (UTC)')
             if end != datetime_received:
                 datetime_received += f' - {end}'
             if mail['count'] > 1:
