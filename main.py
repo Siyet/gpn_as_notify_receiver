@@ -76,13 +76,13 @@ def forward_notifications():
         disc_messages = {}
         for mail in mails.values():
             title = mail['subject']
-            datetime_received = str(mail['start']).replace('+00:00', 'Z').replace(' ', 'T')
+            datetime_received = str(mail['start']).replace('+00:00', ' (UTC)')
             end = str(mail['end']).replace('+00:00', ' (UTC)')
             if end != datetime_received:
                 datetime_received += f' - {end}'
             if mail['count'] > 1:
                 datetime_received += f' (x{mail["count"]})'
-            description = f'**{datetime_received}**:\n```{mail["body"]}```'
+            description = f'{datetime_received}:\n```{mail["body"]}```'
             if title not in disc_messages:
                 disc_messages[title] = {
                     'descriptions': [description],
