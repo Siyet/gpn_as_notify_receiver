@@ -82,7 +82,7 @@ def forward_notifications():
                 datetime_received += f' - {end}'
             if mail['count'] > 1:
                 datetime_received += f' (x{mail["count"]})'
-            description = f'`{datetime_received}`: {mail["body"]}'
+            description = f'**{datetime_received}**:\n```{mail["body"]}```'
             if title not in disc_messages:
                 disc_messages[title] = {
                     'descriptions': [description],
@@ -92,7 +92,7 @@ def forward_notifications():
                 if len(disc_messages[title]['descriptions'][-1] + mail['body']) > DISC_MSG_LIMIT:
                     disc_messages[title]['descriptions'].append(description)
                 else:
-                    disc_messages[title]['descriptions'][-1] += '\n' + description
+                    disc_messages[title]['descriptions'][-1] += '\n\n' + description
                 disc_messages[title] += mail['messages']
 
         for title in disc_messages:
