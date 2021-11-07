@@ -89,10 +89,10 @@ def forward_notifications():
                     'messages': mail['messages']
                 }
             else:
-                if len(disc_messages[title]['description'][-1] + mail['body']) > DISC_MSG_LIMIT:
-                    disc_messages[title]['description'].append(description)
+                if len(disc_messages[title]['descriptions'][-1] + mail['body']) > DISC_MSG_LIMIT:
+                    disc_messages[title]['descriptions'].append(description)
                 else:
-                    disc_messages[title]['description'][-1] += '\n' + description
+                    disc_messages[title]['descriptions'][-1] += '\n' + description
 
         for title in disc_messages:
             for description in disc_messages[title]['descriptions']:
