@@ -8,6 +8,7 @@ import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from exchangelib import DELEGATE, Account, Credentials, Configuration
 from xxhash import xxh64
+from exchangelib import Q
 
 from pydantic_types import DiscMsg, DiscMsgEmbed, EDiscColors
 
@@ -22,6 +23,9 @@ MAIL_USER = os.environ['MAIL_USER']
 MAIL_PASS = os.environ['MAIL_PASS']
 MAIL_ADDR = os.environ['MAIL_ADDR']
 MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
+EXCLUDE_MAIL_FROM = os.environ.get('EXCLUDE_MAIL_FROM', '').split(',')
+EXCLUDE_MAIL_SUBJECT_CONTAINS = os.environ.get('EXCLUDE_MAIL_SUBJECT_CONTAINS', '').split(',')
+# "hdpblps_airflow_test@gazprom-neft.ru" <hdpblps_airflow_test@gazprom-neft.ru>
 
 re_html_tags = re.compile('(<(/?[^>]+)>)')
 re_newline_char = re.compile(r'(?<=\r\n)\r\n')
@@ -53,10 +57,19 @@ def forward_notifications():
         folder = mail_account.root / 'Корневой уровень хранилища' / folder_
         mails = {}
         # Перебираем не прочитанные сообщения и объединяем сообщения с одинаковым заголовком и текстом
-        for mail_msg in folder.filter(is_read=False).order_by('datetime_received'):
+        filter_ = folder.filter(is_read=False)
+        if EXCLUDE_MAIL_FROM:
+            for sender in EXCLUDE_MAIL_FROM:
+                filter_ = filter_.filter(subject__not=sender)
+        if EXCLUDE_MAIL_SUBJECT_CONTAINS:
+            q = Q()
+            for exclude_content in EXCLUDE_MAIL_SUBJECT_CONTAINS:
+                q &= ~Q(subject__contains=exclude_content)
+            filter_ = filter_.filter(q)
+        for mail_msg in filter_.order_by('datetime_received'):
             subject = mail_msg.subject.strip()
             body = mail_msg.body.strip() if mail_msg.body else ''
-            if 'Grafana' in body:
+            if '<html' in body:
                 # Удаляем атрибут style из всех тегов
                 body = re_html_tags.sub('', body.split('</style>')[-1])
                 body = re_newline_char.sub('', body)
