@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from datetime import datetime
 from time import sleep
 
@@ -8,7 +9,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from exchangelib import DELEGATE, Account, Credentials, Configuration
 from xxhash import xxh64
 
-from pydantic_types import DiscMsg, DiscMsgEmbed
+from pydantic_types import DiscMsg, DiscMsgEmbed, EDiscColors
 
 logger = logging.getLogger(__name__)
 scheduler = BlockingScheduler()
@@ -22,10 +23,14 @@ MAIL_PASS = os.environ['MAIL_PASS']
 MAIL_ADDR = os.environ['MAIL_ADDR']
 MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
 
+re_html_tags = re.compile('(<(/?[^>]+)>)')
+re_newline_char = re.compile(r'(?<=\r\n)\r\n')
+
 
 def send_msg(title: str, description: str):
+    color = EDiscColors.GREEN if 'OK' in title else EDiscColors.RED
     resp = requests.post(DISC_WEBHOOK_URL, json=DiscMsg(
-        embeds=[DiscMsgEmbed(title=title, description=f'{DISC_DEV_ROLE} {description}')]
+        embeds=[DiscMsgEmbed(title=title, description=f'{DISC_DEV_ROLE} {description}', color=color)]
     ).dict(by_alias=True))
     assert resp.status_code == 204, \
         f'Error! Received unexpected HTTP code: {resp.status_code}'
@@ -51,6 +56,10 @@ def forward_notifications():
         for mail_msg in folder.filter(is_read=False).order_by('datetime_received'):
             subject = mail_msg.subject.strip()
             body = mail_msg.body.strip() if mail_msg.body else ''
+            if 'Grafana' in body:
+                # Удаляем атрибут style из всех тегов
+                body = re_html_tags.sub('', body.split('</style>')[-1])
+                body = re_newline_char.sub('', body)
             if len(body) > DISC_MSG_LIMIT:
                 # Учитываем ограничение discord'a по длине сообщения
                 body = body[:DISC_MSG_LIMIT] + '...'
