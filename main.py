@@ -23,8 +23,8 @@ MAIL_USER = os.environ['MAIL_USER']
 MAIL_PASS = os.environ['MAIL_PASS']
 MAIL_ADDR = os.environ['MAIL_ADDR']
 MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
-EXCLUDE_MAIL_FROM = os.environ.get('EXCLUDE_MAIL_FROM', '').split(',')
-EXCLUDE_MAIL_SUBJECT_CONTAINS = os.environ.get('EXCLUDE_MAIL_SUBJECT_CONTAINS', '').split(',')
+EXCLUDE_MAIL_FROM = os.environ.get('EXCLUDE_MAIL_FROM')
+EXCLUDE_MAIL_SUBJECT_CONTAINS = os.environ.get('EXCLUDE_MAIL_SUBJECT_CONTAINS')
 # "hdpblps_airflow_test@gazprom-neft.ru" <hdpblps_airflow_test@gazprom-neft.ru>
 
 re_html_tags = re.compile('(<(/?[^>]+)>)')
@@ -59,11 +59,11 @@ def forward_notifications():
         # Перебираем не прочитанные сообщения и объединяем сообщения с одинаковым заголовком и текстом
         filter_ = folder.filter(is_read=False)
         if EXCLUDE_MAIL_FROM:
-            for sender in EXCLUDE_MAIL_FROM:
+            for sender in EXCLUDE_MAIL_FROM.split(','):
                 filter_ = filter_.filter(subject__not=sender)
         if EXCLUDE_MAIL_SUBJECT_CONTAINS:
             q = Q()
-            for exclude_content in EXCLUDE_MAIL_SUBJECT_CONTAINS:
+            for exclude_content in EXCLUDE_MAIL_SUBJECT_CONTAINS.split(','):
                 q &= ~Q(subject__contains=exclude_content)
             filter_ = filter_.filter(q)
         for mail_msg in filter_.order_by('datetime_received'):
