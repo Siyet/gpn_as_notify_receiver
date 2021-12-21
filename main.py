@@ -25,10 +25,17 @@ MAIL_ADDR = os.environ['MAIL_ADDR']
 MAIL_FOLDER = os.environ['MAIL_FOLDER'].split(',')
 EXCLUDE_MAIL_FROM = os.environ.get('EXCLUDE_MAIL_FROM')
 EXCLUDE_MAIL_SUBJECT_CONTAINS = os.environ.get('EXCLUDE_MAIL_SUBJECT_CONTAINS')
-# "hdpblps_airflow_test@gazprom-neft.ru" <hdpblps_airflow_test@gazprom-neft.ru>
 
 re_html_tags = re.compile('(<(/?[^>]+)>)')
 re_newline_char = re.compile(r'(?<=\r\n)\r\n')
+
+
+# TODO:
+# 1. использовать faster_than_requests
+# 2. авторизовываться не каждый раз, например, раз в час, мб в либе можно определить не протухла ил авторизация
+# 3. сохранение сообщений переделать на bulk_update
+# 4. попробовать заменить re_newline_char.sub на replace
+# 5. вынести в константы внутри треда строковые значения
 
 
 def send_msg(title: str, description: str):
