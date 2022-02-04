@@ -39,7 +39,12 @@ re_newline_char = re.compile(r'(?<=\r\n)\r\n')
 
 
 def send_msg(title: str, description: str):
-    color = EDiscColors.GREEN if 'OK' in title else EDiscColors.RED
+    if title[:4] == '[OK]':
+        color = EDiscColors.GREEN
+    elif title[:9] == '[Warning]':
+        color = EDiscColors.ORANGE
+    else:
+        color = EDiscColors.RED
     resp = requests.post(DISC_WEBHOOK_URL, json=DiscMsg(
         embeds=[DiscMsgEmbed(title=title, description=f'{DISC_DEV_ROLE} {description}', color=color)]
     ).dict(by_alias=True))

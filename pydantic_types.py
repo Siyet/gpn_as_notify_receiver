@@ -19,6 +19,7 @@ class EDiscColors(IntEnum):
     FUSCHIA = 15418782
     RED = 15548997
     BLACK = 2303786
+    ORANGE = 15105570
 
 
 class DiscMsgEmbed(BaseModel):
