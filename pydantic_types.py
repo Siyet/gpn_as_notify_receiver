@@ -8,31 +8,6 @@ from pydantic.main import BaseModel
 DISC_WEBHOOK_ID = os.environ['DISC_WEBHOOK_ID']
 
 
-class EStrings(StrEnum):
-    OK_TITLE = '[OK]'
-    WARNING_TITLE = '[Warning]'
-    SERVER = 'mail.gazprom-neft.ru'
-    COMMA = ','
-    EMPTY = ''
-    SPACE = ' '
-    START = 'start'
-    END = 'end'
-    DESCRIPTIONS = 'descriptions'
-    MESSAGES = 'messages'
-    COUNT = 'count'
-    BODY = 'body'
-    SUBJECT = 'subject'
-    UTC = ' (UTC)'
-    UTC_TIME_INCREASE = '+00:00'
-    STYLE_CLOSE_TAG = '</style>'
-    THREE_DOTS = '...'
-    HTML_TAG = '<html'
-    DATETIME_RECEIVED = 'datetime_received'
-    ROOT = 'Корневой уровень хранилища'
-    T = 'T'
-    Z = 'Z'
-
-
 class EDiscColors(IntEnum):
     WHITE = 16777215
     BLURPLE = 5793266
