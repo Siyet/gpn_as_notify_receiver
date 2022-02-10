@@ -1,5 +1,5 @@
 import os
-from enum import IntEnum, StrEnum
+from enum import IntEnum
 from typing import List, Optional
 
 from pydantic.fields import Field

@@ -28,10 +28,10 @@ EXCLUDE_MAIL_SUBJECT_CONTAINS = os.environ.get('EXCLUDE_MAIL_SUBJECT_CONTAINS')
 MAIL_HOST = os.environ.get('mail.gazprom-neft.ru')
 ROOT_FOLDER = os.environ.get('Корневой уровень хранилища')
 
-OK_TITLE_STR = '[OK]'
-WARNING_TITLE_STR = '[Warning]'
-COMMA = ','
-EMPTY = ''
+OK_TITLE_START = '[OK]'
+WARNING_TITLE_START = '[Warning]'
+COMMA_CHAR = ','
+EMPTY_CHAR = ''
 SPACE_CHAR = ' '
 START = 'start'
 END = 'end'
@@ -48,7 +48,7 @@ HTML_TAG = '<html'
 DATETIME_RECEIVED = 'datetime_received'
 T_CHAR = 'T'
 Z_CHAR = 'Z'
-RETURN_STR = '\n\n'
+RETURN_CHAR = '\n\n'
 
 re_html_tags = re.compile('(<(/?[^>]+)>)')
 re_newline_char = re.compile(r'(?<=\r\n)\r\n')
@@ -62,9 +62,9 @@ re_newline_char = re.compile(r'(?<=\r\n)\r\n')
 
 
 def send_msg(title: str, description: str):
-    if title[:4] == OK_TITLE_STR:
+    if title[:4] == OK_TITLE_START:
         color = EDiscColors.GREEN
-    elif title[:9] == WARNING_TITLE_STR:
+    elif title[:9] == WARNING_TITLE_START:
         color = EDiscColors.ORANGE
     else:
         color = EDiscColors.RED
@@ -94,20 +94,20 @@ def forward_notifications():
         # Перебираем не прочитанные сообщения и объединяем сообщения с одинаковым заголовком и текстом
         filter_ = folder.filter(is_read=False)
         if EXCLUDE_MAIL_FROM:
-            for sender in EXCLUDE_MAIL_FROM.split(COMMA):
+            for sender in EXCLUDE_MAIL_FROM.split(COMMA_CHAR):
                 filter_ = filter_.filter(subject__not=sender)
         if EXCLUDE_MAIL_SUBJECT_CONTAINS:
             q = Q()
-            for exclude_content in EXCLUDE_MAIL_SUBJECT_CONTAINS.split(COMMA):
+            for exclude_content in EXCLUDE_MAIL_SUBJECT_CONTAINS.split(COMMA_CHAR):
                 q &= ~Q(subject__contains=exclude_content)
             filter_ = filter_.filter(q)
         for mail_msg in filter_.order_by(DATETIME_RECEIVED):
             subject = mail_msg.subject.strip()
-            body = mail_msg.body.strip() if mail_msg.body else EMPTY
+            body = mail_msg.body.strip() if mail_msg.body else EMPTY_CHAR
             if HTML_TAG in body:
                 # Удаляем атрибут style из всех тегов
-                body = re_html_tags.sub(EMPTY, body.split(STYLE_CLOSE_TAG)[-1])
-                body = re_newline_char.sub(EMPTY, body)
+                body = re_html_tags.sub(EMPTY_CHAR, body.split(STYLE_CLOSE_TAG)[-1])
+                body = re_newline_char.sub(EMPTY_CHAR, body)
             if len(body) > DISC_MSG_LIMIT:
                 # Учитываем ограничение discord'a по длине сообщения
                 body = body[:DISC_MSG_LIMIT] + THREE_DOTS
@@ -149,7 +149,7 @@ def forward_notifications():
                 if len(disc_messages[title][DESCRIPTIONS][-1] + mail[BODY]) > DISC_MSG_LIMIT:
                     disc_messages[title][DESCRIPTIONS].append(description)
                 else:
-                    disc_messages[title][DESCRIPTIONS][-1] += RETURN_STR + description
+                    disc_messages[title][DESCRIPTIONS][-1] += RETURN_CHAR + description
                 disc_messages[title][MESSAGES] += mail[MESSAGES]
 
         for title in disc_messages:
