@@ -49,9 +49,9 @@ DATETIME_RECEIVED = 'datetime_received'
 T_CHAR = 'T'
 Z_CHAR = 'Z'
 RETURN_CHAR = '\n\n'
-
+WINDOWS_RETURN_CHAR = '\r\n\r\n'
+WINDOWS_NEW_STR = '\r\n'
 re_html_tags = re.compile('(<(/?[^>]+)>)')
-re_newline_char = re.compile(r'(?<=\r\n)\r\n')
 
 
 # TODO:
@@ -107,7 +107,8 @@ def forward_notifications():
             if HTML_TAG in body:
                 # Удаляем атрибут style из всех тегов
                 body = re_html_tags.sub(EMPTY_CHAR, body.split(STYLE_CLOSE_TAG)[-1])
-                body = re_newline_char.sub(EMPTY_CHAR, body)
+                while WINDOWS_RETURN_CHAR in body:
+                    body = body.replace(WINDOWS_RETURN_CHAR, WINDOWS_NEW_STR)
             if len(body) > DISC_MSG_LIMIT:
                 # Учитываем ограничение discord'a по длине сообщения
                 body = body[:DISC_MSG_LIMIT] + THREE_DOTS
