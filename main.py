@@ -49,8 +49,8 @@ DATETIME_RECEIVED = 'datetime_received'
 T_CHAR = 'T'
 Z_CHAR = 'Z'
 RETURN_CHAR = '\n\n'
-WINDOWS_RETURN_CHAR = '\r\n\r\n'
-WINDOWS_NEW_STR = '\r\n'
+WIN_DBL_RETURN_CHAR = '\r\n\r\n'
+WIN_RETURN_CHAR = '\r\n'
 re_html_tags = re.compile('(<(/?[^>]+)>)')
 
 
@@ -58,7 +58,6 @@ re_html_tags = re.compile('(<(/?[^>]+)>)')
 # 1. использовать faster_than_requests
 # 2. авторизовываться не каждый раз, например, раз в час, мб в либе можно определить не протухла ил авторизация
 # 3. сохранение сообщений переделать на bulk_update
-# 4. попробовать заменить re_newline_char.sub на replace
 
 
 def send_msg(title: str, description: str):
@@ -107,8 +106,8 @@ def forward_notifications():
             if HTML_TAG in body:
                 # Удаляем атрибут style из всех тегов
                 body = re_html_tags.sub(EMPTY_CHAR, body.split(STYLE_CLOSE_TAG)[-1])
-                while WINDOWS_RETURN_CHAR in body:
-                    body = body.replace(WINDOWS_RETURN_CHAR, WINDOWS_NEW_STR)
+                while WIN_DBL_RETURN_CHAR in body:
+                    body = body.replace(WIN_DBL_RETURN_CHAR, WIN_RETURN_CHAR)
             if len(body) > DISC_MSG_LIMIT:
                 # Учитываем ограничение discord'a по длине сообщения
                 body = body[:DISC_MSG_LIMIT] + THREE_DOTS
