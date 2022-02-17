@@ -6,7 +6,7 @@ from time import sleep
 
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
-from exchangelib import DELEGATE, Account, Credentials, Configuration
+from exchangelib import DELEGATE, Account, Credentials, Configuration, FaultTolerance
 from xxhash import xxh64
 from exchangelib import Q
 
@@ -49,8 +49,7 @@ re_html_tags = re.compile('(<(/?[^>]+)>)')
 
 # TODO:
 # 1. использовать faster_than_requests
-# 2. авторизовываться не каждый раз, например, раз в час, мб в либе можно определить не протухла ил авторизация
-# 3. сохранение сообщений переделать на bulk_update
+# 2. сохранение сообщений переделать на bulk_update
 
 
 def send_msg(title: str, description: str):
@@ -69,16 +68,19 @@ def send_msg(title: str, description: str):
     # TODO: тут можно дописать проверки на соответствие title и description
 
 
+mail_cfg = Configuration(retry_policy=FaultTolerance(max_wait=3600),
+                         server=MAIL_HOST,
+                         credentials=Credentials(username=MAIL_USER,
+                                                 password=MAIL_PASS))
+mail_account = Account(
+    primary_smtp_address=MAIL_ADDR,
+    autodiscover=False, access_type=DELEGATE,
+    config=mail_cfg
+)
+
+
 @scheduler.scheduled_job('interval', minutes=10)
 def forward_notifications():
-    mail_cfg = Configuration(server=MAIL_HOST,
-                             credentials=Credentials(username=MAIL_USER,
-                                                     password=MAIL_PASS))
-    mail_account = Account(
-        primary_smtp_address=MAIL_ADDR,
-        autodiscover=False, access_type=DELEGATE,
-        config=mail_cfg
-    )
     # Просматриваем каждую из указанных папок по очереди
     for folder_ in MAIL_FOLDER:
         folder = mail_account.root / ROOT_FOLDER / folder_
