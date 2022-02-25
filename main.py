@@ -37,9 +37,9 @@ COUNT = 'count'
 BODY, SUBJECT = 'body', 'subject'
 UTC = ' (UTC)'
 UTC_TIME_INCREASE = '+00:00'
-STYLE_CLOSE_TAG = '</style>'
+STYLE_CLOSE_TAG, HTML_TAG = '</style>', '<html'
 THREE_DOTS = '...'
-HTML_TAG = '<html'
+IS_READ = 'is_read'
 DATETIME_RECEIVED = 'datetime_received'
 T_CHAR, Z_CHAR = 'T', 'Z'
 RETURN_CHAR = '\n\n'
@@ -153,7 +153,7 @@ def forward_notifications():
                 sleep(1)  # чтобы не отхватить 429 от discord
             for mail_msg in disc_messages[title][MESSAGES]:
                 mail_msg.is_read = True
-            mail_account.bulk_update([(msg, ('is_read',)) for msg in disc_messages[title][MESSAGES]])
+            mail_account.bulk_update([(msg, (IS_READ,)) for msg in disc_messages[title][MESSAGES]])
     now = str(datetime.utcnow())[:-3].replace(SPACE_CHAR, T_CHAR) + Z_CHAR
     logger.info(f'[{now}] the transfer was completed successfully.')
 
