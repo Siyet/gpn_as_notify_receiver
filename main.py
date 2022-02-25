@@ -153,7 +153,7 @@ def forward_notifications():
                 sleep(1)  # чтобы не отхватить 429 от discord
             for mail_msg in disc_messages[title][MESSAGES]:
                 mail_msg.is_read = True
-            Account.bulk_update(disc_messages[title][MESSAGES])
+            mail_account.bulk_update([(msg, ('is_read',)) for msg in disc_messages[title][MESSAGES]])
     now = str(datetime.utcnow())[:-3].replace(SPACE_CHAR, T_CHAR) + Z_CHAR
     logger.info(f'[{now}] the transfer was completed successfully.')
 
