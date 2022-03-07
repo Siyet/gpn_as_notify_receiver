@@ -44,12 +44,13 @@ DATETIME_RECEIVED = 'datetime_received'
 T_CHAR, Z_CHAR = 'T', 'Z'
 RETURN_CHAR = '\n\n'
 WIN_RETURN_CHAR, WIN_DBL_RETURN_CHAR = '\r\n', '\r\n\r\n'
-re_html_tags = re.compile('(<(/?[^>]+)>)')
+RE_HTML_TAGS = re.compile('(<(/?[^>]+)>)')
+MAIL_CFG = Configuration(retry_policy=FaultTolerance(max_wait=3600), server=MAIL_HOST,
+                         credentials=Credentials(username=MAIL_USER, password=MAIL_PASS))
 
 
 # TODO:
 # 1. использовать faster_than_requests
-# 2. сохранение сообщений переделать на bulk_update
 
 
 def send_msg(title: str, description: str):
@@ -68,19 +69,9 @@ def send_msg(title: str, description: str):
     # TODO: тут можно дописать проверки на соответствие title и description
 
 
-mail_cfg = Configuration(retry_policy=FaultTolerance(max_wait=3600),
-                         server=MAIL_HOST,
-                         credentials=Credentials(username=MAIL_USER,
-                                                 password=MAIL_PASS))
-mail_account = Account(
-    primary_smtp_address=MAIL_ADDR,
-    autodiscover=False, access_type=DELEGATE,
-    config=mail_cfg
-)
-
-
 @scheduler.scheduled_job('interval', minutes=10)
 def forward_notifications():
+    mail_account = Account(primary_smtp_address=MAIL_ADDR, autodiscover=False, access_type=DELEGATE, config=MAIL_CFG)
     # Просматриваем каждую из указанных папок по очереди
     for folder_ in MAIL_FOLDER:
         folder = mail_account.root / ROOT_FOLDER / folder_
@@ -100,7 +91,7 @@ def forward_notifications():
             body = mail_msg.body.strip() if mail_msg.body else EMPTY_CHAR
             if HTML_TAG in body:
                 # Удаляем атрибут style из всех тегов
-                body = re_html_tags.sub(EMPTY_CHAR, body.split(STYLE_CLOSE_TAG)[-1])
+                body = RE_HTML_TAGS.sub(EMPTY_CHAR, body.split(STYLE_CLOSE_TAG)[-1])
                 while WIN_DBL_RETURN_CHAR in body:
                     body = body.replace(WIN_DBL_RETURN_CHAR, WIN_RETURN_CHAR)
             if len(body) > DISC_MSG_LIMIT:
