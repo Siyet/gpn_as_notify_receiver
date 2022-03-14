@@ -83,8 +83,6 @@ def handler(event, context):
                 q &= ~Q(subject__contains=exclude_content)
             filter_ = filter_.filter(q)
         for mail_msg in filter_.order_by(DATETIME_RECEIVED):
-            print(mail_msg)
-            print(mail_msg.datetime_received)
             subject = mail_msg.subject.strip()
             body = mail_msg.body.strip() if mail_msg.body else EMPTY_CHAR
             if HTML_TAG in body:
