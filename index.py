@@ -5,7 +5,6 @@ from datetime import datetime
 from time import sleep
 
 import requests
-from apscheduler.schedulers.blocking import BlockingScheduler
 from exchangelib import DELEGATE, Account, Credentials, Configuration, FaultTolerance
 from xxhash import xxh64
 from exchangelib import Q
@@ -13,12 +12,10 @@ from exchangelib import Q
 from pydantic_types import DiscMsg, DiscMsgEmbed, EDiscColors
 
 logger = logging.getLogger(__name__)
-scheduler = BlockingScheduler()
 
 DISC_WEBHOOK_URL = os.environ['DISC_WEBHOOK_URL']
-DISC_DEV_ROLE = os.environ['DISC_DEV_ROLE']
+DISC_DEV_ROLE = os.environ.get('DISC_DEV_ROLE', '')
 DISC_MSG_LIMIT = int(os.environ.get('DISC_MSG_LIMIT', '1800'))
-FREQUENCY_MIN = int(os.environ.get('FREQUENCY_MIN', '10'))
 MAIL_USER = os.environ['MAIL_USER']
 MAIL_PASS = os.environ['MAIL_PASS']
 MAIL_ADDR = os.environ['MAIL_ADDR']
@@ -69,8 +66,7 @@ def send_msg(title: str, description: str):
     # TODO: тут можно дописать проверки на соответствие title и description
 
 
-@scheduler.scheduled_job('interval', minutes=10)
-def forward_notifications():
+def handler(event, context):
     mail_account = Account(primary_smtp_address=MAIL_ADDR, autodiscover=False, access_type=DELEGATE, config=MAIL_CFG)
     # Просматриваем каждую из указанных папок по очереди
     for folder_ in MAIL_FOLDER:
@@ -87,6 +83,8 @@ def forward_notifications():
                 q &= ~Q(subject__contains=exclude_content)
             filter_ = filter_.filter(q)
         for mail_msg in filter_.order_by(DATETIME_RECEIVED):
+            print(mail_msg)
+            print(mail_msg.datetime_received)
             subject = mail_msg.subject.strip()
             body = mail_msg.body.strip() if mail_msg.body else EMPTY_CHAR
             if HTML_TAG in body:
@@ -146,8 +144,8 @@ def forward_notifications():
                 mail_msg.is_read = True
             mail_account.bulk_update([(msg, (IS_READ,)) for msg in disc_messages[title][MESSAGES]])
     now = str(datetime.utcnow())[:-3].replace(SPACE_CHAR, T_CHAR) + Z_CHAR
-    logger.info(f'[{now}] the transfer was completed successfully.')
+    return {'statusCode': 200, 'body': f'[{now}] the transfer was completed successfully.'}
 
 
-forward_notifications()
-scheduler.start()
+if __name__ == '__main__':
+    handler(None, None)

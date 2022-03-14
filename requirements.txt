@@ -2,4 +2,3 @@ requests
 exchangelib
 pydantic
 xxhash
-apscheduler
